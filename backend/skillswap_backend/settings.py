@@ -1,7 +1,8 @@
 """
 Django settings for SkillSwap DBU Backend.
 """
-
+# Note: This is a simplified settings file for development and demonstration purposes.
+# In production, you should use environment variables and a more secure configuration.
 import os
 from pathlib import Path
 from dotenv import load_dotenv

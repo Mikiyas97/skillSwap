@@ -2,7 +2,7 @@
 Supabase JWT Auth Middleware for Django.
 Attaches supabase_user_id and supabase_email to request for downstream use.
 """
-
+# Note: This middleware is designed for demonstration and development purposes. In production, consider using a more robust authentication mechanism and secure handling of JWT secrets.
 import jwt
 from django.conf import settings
 from django.http import JsonResponse

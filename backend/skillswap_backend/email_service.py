@@ -1,7 +1,7 @@
 """
 Email notification service using Resend API.
 """
-
+# Note: In production, consider using a more robust email service or queuing system for better reliability and performance.
 import requests
 from django.conf import settings
 
