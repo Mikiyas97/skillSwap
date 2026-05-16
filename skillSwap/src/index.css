@@ -1,0 +1,855 @@
+@import "tailwindcss";
+
+/* ========================================
+   SkillSwap DBU — Design System
+   Using :root for global CSS variable access
+   ======================================== */
+
+@layer base {
+  :root {
+    --color-primary: #6C63FF;
+    --color-primary-light: #8B83FF;
+    --color-primary-dark: #5A52E0;
+    --color-secondary: #FF6B6B;
+    --color-secondary-light: #FF8A8A;
+    --color-accent: #4ECDC4;
+    --color-accent-light: #6FE0D8;
+
+    --color-dark-900: #0A0A12;
+    --color-dark-800: #12121E;
+    --color-dark-700: #1A1A2E;
+    --color-dark-600: #222238;
+    --color-dark-500: #2A2A42;
+
+    --color-text-primary: #F0F0F5;
+    --color-text-secondary: #B0B0C8;
+    --color-text-muted: #6B6B8D;
+
+    --color-success: #44CF6C;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg-hover: rgba(255, 255, 255, 0.07);
+
+    --bottom-nav-height: 64px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+    /* Force dark color scheme for native UI controls */
+    color-scheme: dark;
+  }
+
+  /* ========================================
+     Base Styles — @layer base overrides
+     Tailwind v4 preflight
+     ======================================== */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-dark-900) !important;
+    color: var(--color-text-primary) !important;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--color-text-primary);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Fix form elements — force dark backgrounds */
+  input, textarea, select, button {
+    color: inherit;
+    font-family: inherit;
+  }
+
+  select {
+    background-color: var(--color-dark-700);
+    color: var(--color-text-primary);
+  }
+
+  option {
+    background-color: var(--color-dark-700);
+    color: var(--color-text-primary);
+  }
+
+  /* Autofill fix for dark theme */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-text-primary);
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-dark-700) inset;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: var(--color-text-primary);
+  }
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+/* On mobile, disable hover lift on glass-card to prevent sticky states */
+@media (max-width: 767px) {
+  .glass-card:hover {
+    transform: none;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-warm {
+  background: linear-gradient(135deg, var(--color-secondary), #FFE66D);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-bg {
+  background: radial-gradient(ellipse at 20% 50%, rgba(108, 99, 255, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 50%, rgba(78, 205, 196, 0.06) 0%, transparent 50%),
+              var(--color-dark-900);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff !important;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(108, 99, 255, 0.35);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: transparent;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.btn-secondary:hover {
+  background: var(--glass-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary-light) !important;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--color-dark-700) !important;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary) !important;
+  font-family: var(--font-body);
+  font-size: 1rem; /* 16px prevents iOS zoom */
+  transition: all 0.3s ease;
+  outline: none;
+  min-height: 48px;
+}
+
+.input-field:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+.input-field::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ========================================
+   Scrollbar
+   ======================================== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dark-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-dark-500);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(108, 99, 255, 0.2); }
+  50%      { box-shadow: 0 0 40px rgba(108, 99, 255, 0.4); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Stagger children animations */
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* ========================================
+   Responsive: Bottom Nav Spacing
+   On mobile, add padding-bottom so content
+   isn't hidden behind the fixed bottom nav.
+   ======================================== */
+@media (max-width: 1023px) {
+  .page-content {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 16px) !important;
+  }
+  /* Hide footer on mobile when logged in (bottom nav replaces it) */
+  .footer-desktop {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none !important;
+  }
+  .footer-desktop {
+    display: block;
+  }
+}
+
+/* ========================================
+   Responsive: Chat Page
+   Mobile: show either list OR panel
+   ======================================== */
+.chat-container {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
+
+.chat-sidebar {
+  width: 320px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-dark-800);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-dark-900);
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .chat-container {
+    position: relative;
+    overflow: hidden;
+    min-height: calc(100vh - 64px - var(--bottom-nav-height));
+  }
+  .chat-sidebar {
+    width: 100%;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    transition: transform 0.3s ease;
+  }
+  .chat-sidebar.chat-hidden {
+    transform: translateX(-100%);
+  }
+  .chat-main {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+  .chat-main.chat-visible {
+    transform: translateX(0);
+  }
+}
+
+/* ========================================
+   Responsive: Modal (Bottom Sheet on Mobile)
+   ======================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-content {
+  background: var(--color-dark-700);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 639px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal-content {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    max-height: 85vh;
+    animation: slideUp 0.3s ease;
+    padding: 24px 20px calc(24px + var(--safe-bottom));
+  }
+}
+
+/* ========================================
+   Responsive: Page Layouts
+   ======================================== */
+
+/* Dashboard grid: stacks on mobile */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+}
+@media (max-width: 768px) {
+  .dash-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Stats grid: 2 cols mobile, 4 cols desktop */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Profile grid: stacks on mobile */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .profile-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Profile stats: 3 cols mobile, 4 cols desktop */
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+@media (min-width: 640px) {
+  .profile-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Browse skill cards: 1 col mobile, 2 tablet, 3 desktop */
+.skill-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px) {
+  .skill-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+@media (min-width: 1024px) {
+  .skill-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+/* Leaderboard: table → cards on mobile */
+.leaderboard-entry {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.leaderboard-stats {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+@media (max-width: 639px) {
+  .leaderboard-entry {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+  .leaderboard-stats {
+    width: 100%;
+    justify-content: space-around;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    margin-top: 4px;
+  }
+  /* Hide podium detail text on small screens */
+  .podium-container {
+    gap: 8px !important;
+    padding: 0 8px !important;
+  }
+}
+
+/* My Rank Banner: stack on mobile */
+@media (max-width: 639px) {
+  .rank-banner {
+    flex-direction: column !important;
+    text-align: center;
+    gap: 12px !important;
+    padding: 20px 16px !important;
+  }
+  .rank-banner > div:last-child {
+    text-align: center !important;
+  }
+}
+
+/* Time slot grid: 2 cols mobile, 3 cols desktop */
+.timeslot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+@media (min-width: 640px) {
+  .timeslot-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ========================================
+   Responsive: Page Padding
+   ======================================== */
+.page-padding {
+  padding: 16px 16px;
+}
+@media (min-width: 640px) {
+  .page-padding {
+    padding: 24px 24px;
+  }
+}
+@media (min-width: 768px) {
+  .page-padding {
+    padding: 32px 32px;
+  }
+}
+
+/* ========================================
+   Responsive: Typography
+   ======================================== */
+.heading-xl {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+@media (min-width: 768px) {
+  .heading-xl {
+    font-size: 2rem;
+  }
+}
+@media (min-width: 1024px) {
+  .heading-xl {
+    font-size: 2.5rem;
+  }
+}
+
+/* ========================================
+   Responsive: Buttons on Mobile
+   ======================================== */
+@media (max-width: 639px) {
+  .btn-primary, .btn-secondary {
+    padding: 12px 20px;
+    font-size: 0.875rem;
+    width: 100%;
+  }
+  .btn-inline {
+    width: auto !important;
+  }
+}
+
+/* ========================================
+   Responsive: Message Bubbles
+   ======================================== */
+.message-bubble {
+  max-width: 80%;
+}
+@media (min-width: 768px) {
+  .message-bubble {
+    max-width: 65%;
+  }
+}
+
+/* ========================================
+   Responsive: Hero Section
+   ======================================== */
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+@media (max-width: 479px) {
+  .hero-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-buttons .btn-primary,
+  .hero-buttons .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ========================================
+   Responsive: Smooth Scroll
+   ======================================== */
+.scroll-smooth {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ========================================
+   Responsive: Text Overflow Safety
+   ======================================== */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-break {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ========================================
+   Bottom Navigation Styles
+   ======================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(10, 10, 18, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  min-width: 56px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary-light);
+}
+
+.bottom-nav-item svg {
+  width: 22px;
+  height: 22px;
+}
+
+.bottom-nav-post {
+  position: relative;
+  top: -12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--color-dark-900);
+  box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-post svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Hide desktop nav links on mobile */
+@media (max-width: 1023px) {
+  .nav-desktop-links {
+    display: none !important;
+  }
+  .nav-hamburger {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   Responsive: Skill Detail
+   Book button fixed bottom on mobile
+   ======================================== */
+@media (max-width: 767px) {
+  .skill-detail-book-sticky {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height) + var(--safe-bottom));
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    background: rgba(10, 10, 18, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    z-index: 50;
+  }
+}
+
+/* ========================================
+   Responsive: Quick Actions on Mobile
+   ======================================== */
+.quick-actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (min-width: 640px) {
+  .quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* ========================================
+   Responsive: Landing Features Grid
+   ======================================== */
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+@media (min-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+/* Landing steps grid */
+.steps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@media (min-width: 768px) {
+  .steps-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+}
+
+/* Landing trending grid */
+.trending-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px) {
+  .trending-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+@media (min-width: 1024px) {
+  .trending-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+/* ========================================
+   Responsive: Form Layout
+   ======================================== */
+.form-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   Responsive: My Posts Grid
+   ======================================== */
+.my-posts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .my-posts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
