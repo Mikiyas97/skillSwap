@@ -47,7 +47,7 @@ class LeaderboardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'name', 'college', 'department', 'avatar', 'rating',
+        fields = ['id', 'email', 'name', 'college', 'department', 'avatar', 'rating',
                   'total_reviews', 'sessions_completed', 'badges', 'score']
 
     def get_name(self, obj):

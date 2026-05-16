@@ -17,15 +17,42 @@ class SupabaseJWTAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
         auth_header = request.headers.get('Authorization', '')
+        
+        print(f"[Supabase Auth] Processing request path: {request.path}")
+        
         if not auth_header.startswith('Bearer '):
+            print("[Supabase Auth] No Bearer token provided in Authorization header.")
             return None
 
         token = auth_header.replace('Bearer ', '')
         if not token:
+            print("[Supabase Auth] Empty token string provided.")
             return None
+
+        # -- DEMO BYPASS FOR TESTING --
+        if token.startswith("DEMO_TOKEN"):
+            parts = token.split(":")
+            email = parts[1] if len(parts) > 1 else "abebegeleta@dbu.edu.et"
+            
+            print(f"[Supabase Auth] DEMO_TOKEN detected! Authenticating demo user: {email}")
+            try:
+                user = User.objects.get(email=email)
+                print(f"[Supabase Auth] Authenticated existing demo user: {user.email}")
+            except User.DoesNotExist:
+                print(f"[Supabase Auth] New demo user, no Django profile yet: {email}")
+                # Return an unsaved user instance so IsAuthenticated passes,
+                # but views can check `if not request.user.pk:` to return 404.
+                import uuid
+                user = User(
+                    supabase_uid=str(uuid.uuid4()),
+                    email=email,
+                    username=email.split('@')[0] if email else "demo_user"
+                )
+            return (user, token)
 
         # If no JWT secret is configured, skip (dev mode)
         if not settings.SUPABASE_JWT_SECRET:
+            print("[Supabase Auth] Missing SUPABASE_JWT_SECRET in Django settings. Skipping auth.")
             return None
 
         try:
@@ -35,48 +62,35 @@ class SupabaseJWTAuthentication(BaseAuthentication):
                 algorithms=['HS256'],
                 audience='authenticated',
             )
+            print("[Supabase Auth] JWT successfully verified. Extracted payload.")
         except jwt.ExpiredSignatureError:
+            print("[Supabase Auth] ERROR: Token has expired.")
             raise AuthenticationFailed('Token has expired')
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
+            print(f"[Supabase Auth] ERROR: Invalid token: {str(e)}")
             raise AuthenticationFailed('Invalid token')
 
         supabase_uid = payload.get('sub')
         email = payload.get('email', '')
-        user_metadata = payload.get('user_metadata', {})
 
         if not supabase_uid:
             raise AuthenticationFailed('Token missing user ID')
 
-        # Get or create the local user
-        user, created = User.objects.get_or_create(
-            supabase_uid=supabase_uid,
-            defaults={
-                'username': email.split('@')[0] if email else supabase_uid[:30],
-                'email': email,
-                'first_name': user_metadata.get('name', '').split(' ')[0] if user_metadata.get('name') else '',
-                'last_name': ' '.join(user_metadata.get('name', '').split(' ')[1:]) if user_metadata.get('name') else '',
-                'college': user_metadata.get('college', ''),
-                'department': user_metadata.get('department', ''),
-                'year': user_metadata.get('year', ''),
-            }
-        )
+        # Enforce @dbu.edu.et domain restriction
+        if not email or not email.endswith('@dbu.edu.et'):
+            raise AuthenticationFailed('Only @dbu.edu.et emails are allowed')
 
-        if not created and user_metadata:
-            # Sync metadata updates from Supabase
-            changed = False
-            for field in ['college', 'department', 'year']:
-                val = user_metadata.get(field, '')
-                if val and getattr(user, field) != val:
-                    setattr(user, field, val)
-                    changed = True
-            name = user_metadata.get('name', '')
-            if name:
-                parts = name.split(' ', 1)
-                if user.first_name != parts[0]:
-                    user.first_name = parts[0]
-                    user.last_name = parts[1] if len(parts) > 1 else ''
-                    changed = True
-            if changed:
-                user.save()
+        try:
+            user = User.objects.get(supabase_uid=supabase_uid)
+            print(f"[Supabase Auth] Authenticated existing Django User: {user.email}")
+        except User.DoesNotExist:
+            print(f"[Supabase Auth] New Supabase user, no Django profile yet: {email}")
+            # Return an unsaved user instance so IsAuthenticated passes,
+            # but views can check `if not request.user.pk:` to return 404.
+            user = User(
+                supabase_uid=supabase_uid,
+                email=email,
+                username=email.split('@')[0] if email else supabase_uid[:30]
+            )
 
         return (user, token)

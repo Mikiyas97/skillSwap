@@ -88,26 +88,15 @@ CHANNEL_LAYERS = {
 # Database
 # ========================================
 
-DATABASE_URL = os.getenv('DATABASE_URL', '')
+import dj_database_url
 
-if DATABASE_URL.startswith('postgres'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': DATABASE_URL.split('/')[-1].split('?')[0],
-            'USER': DATABASE_URL.split('://')[1].split(':')[0],
-            'PASSWORD': DATABASE_URL.split(':')[2].split('@')[0],
-            'HOST': DATABASE_URL.split('@')[1].split(':')[0],
-            'PORT': DATABASE_URL.split('@')[1].split(':')[1].split('/')[0],
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 # ========================================
 # Auth

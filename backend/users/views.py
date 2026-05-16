@@ -5,16 +5,41 @@ from .models import User
 from .serializers import UserSerializer, UserUpdateSerializer, LeaderboardSerializer
 
 
-class ProfileView(generics.RetrieveUpdateAPIView):
-    """Get or update the current user's profile."""
+class ProfileView(generics.RetrieveUpdateAPIView, generics.CreateAPIView):
+    """Get, update, or create the current user's profile."""
 
     def get_serializer_class(self):
-        if self.request.method in ['PUT', 'PATCH']:
+        if self.request.method in ['PUT', 'PATCH', 'POST']:
             return UserUpdateSerializer
         return UserSerializer
 
     def get_object(self):
+        if not self.request.user.pk:
+            from rest_framework.exceptions import NotFound
+            raise NotFound('Profile not found')
         return self.request.user
+
+    def post(self, request, *args, **kwargs):
+        if request.user.pk:
+            return Response({'error': 'Profile already exists'}, status=status.HTTP_409_CONFLICT)
+        
+        user = request.user
+        
+        # Populate from request data
+        name = request.data.get('full_name', request.data.get('name', ''))
+        if name:
+            parts = name.split(' ', 1)
+            user.first_name = parts[0]
+            user.last_name = parts[1] if len(parts) > 1 else ''
+            
+        user.college = request.data.get('college', '')
+        user.department = request.data.get('department', '')
+        user.year = request.data.get('year', '')
+        user.bio = request.data.get('bio', '')
+        user.avatar = request.data.get('profile_picture', request.data.get('avatar', ''))
+        
+        user.save()
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
 class UserDetailView(generics.RetrieveAPIView):
