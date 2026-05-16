@@ -16,24 +16,25 @@ logger = logging.getLogger(__name__)
 
 # ─── Gemini Client (lazy init) ─────────────────────────────
 
-_genai_client = None
+_genai_configured = False
 
 
-def _get_genai_client():
+def _is_genai_available():
     """Lazy-initialize the Gemini client."""
-    global _genai_client
-    if _genai_client is None:
+    global _genai_configured
+    if not _genai_configured:
         try:
-            from google import genai
+            import google.generativeai as genai
             api_key = os.getenv('GEMINI_API_KEY', '')
             if not api_key:
                 logger.warning('[AI] GEMINI_API_KEY not set — all calls will use fallback scoring.')
-                return None
-            _genai_client = genai.Client(api_key=api_key)
+                return False
+            genai.configure(api_key=api_key)
+            _genai_configured = True
         except Exception as e:
             logger.error(f'[AI] Failed to initialize Gemini client: {e}')
-            return None
-    return _genai_client
+            return False
+    return _genai_configured
 
 
 def _get_model_name():
@@ -169,8 +170,8 @@ def score_match(wanted_post, offer_post):
     if cached:
         return cached
 
-    client = _get_genai_client()
-    if client:
+    if _is_genai_available():
+        import google.generativeai as genai
         try:
             cat_wanted = getattr(wanted_post.category, 'name', 'Uncategorized') if wanted_post.category else 'Uncategorized'
             cat_offer = getattr(offer_post.category, 'name', 'Uncategorized') if offer_post.category else 'Uncategorized'
@@ -201,10 +202,8 @@ SCORING SCALE:
 Return ONLY valid JSON, nothing else:
 {{"score": <0-100>, "reason": "<one sentence explaining the match>"}}"""
 
-            response = client.models.generate_content(
-                model=_get_model_name(),
-                contents=prompt,
-            )
+            model = genai.GenerativeModel(_get_model_name())
+            response = model.generate_content(prompt)
 
             result = _parse_gemini_json(response.text)
             if result and 'score' in result and 'reason' in result:
@@ -236,15 +235,15 @@ def score_study_partner(wanted_post_a, wanted_post_b):
     if cached:
         return cached
 
-    client = _get_genai_client()
-    if client:
+    if _is_genai_available():
+        import google.generativeai as genai
         try:
             cat_a = getattr(wanted_post_a.category, 'name', 'Uncategorized') if wanted_post_a.category else 'Uncategorized'
             cat_b = getattr(wanted_post_b.category, 'name', 'Uncategorized') if wanted_post_b.category else 'Uncategorized'
 
             prompt = f"""You are a university skill-matching assistant for SkillSwap DBU at Debre Berhan University.
 
-Evaluate how well these two students would benefit from studying together based on their learning needs.
+Evaluate how well these two students would benefit from studying together AS PEERS based on their posts.
 
 STUDENT A's POST:
 - Title: {wanted_post_a.title}
@@ -258,22 +257,23 @@ STUDENT B's POST:
 - Category: {cat_b}
 - Tags: {', '.join(wanted_post_b.tags or [])}
 
-How well would these two students benefit from studying together based on their learning needs?
+IMPORTANT INSTRUCTION:
+You are evaluating them strictly as PEER STUDY PARTNERS (co-learners) or CO-TUTORS. 
+If one student is explicitly asking for a teacher and the other is offering to teach, they are a Teacher-Student match, NOT peer study partners. In that case, score them LOW (below 50).
+Give high scores ONLY if they share similar learning goals and would study well together on the same level.
 
 SCORING SCALE:
-90-100: Perfect study partners — nearly identical learning goals
-70-89: Strong partners — very similar topics and can help each other
+90-100: Perfect study partners — nearly identical learning goals or co-tutoring interests
+70-89: Strong partners — very similar topics and can learn together
 50-69: Partial match — some shared interests worth exploring
-30-49: Weak match — loosely related study areas
+30-49: Weak match — loosely related study areas or mismatched dynamics (e.g., tutor vs learner)
 0-29: No match — completely different learning paths
 
 Return ONLY valid JSON, nothing else:
-{{"score": <0-100>, "reason": "<one sentence explaining why they'd be good study partners>"}}"""
+{{"score": <0-100>, "reason": "<one sentence explaining why they'd be good PEER study partners>"}}"""
 
-            response = client.models.generate_content(
-                model=_get_model_name(),
-                contents=prompt,
-            )
+            model = genai.GenerativeModel(_get_model_name())
+            response = model.generate_content(prompt)
 
             result = _parse_gemini_json(response.text)
             if result and 'score' in result and 'reason' in result:
@@ -341,7 +341,10 @@ def get_ai_matches(source_post, exclude_user, limit=5, min_score=60):
     # Step 3: Score each candidate (max 20)
     scored = []
     for candidate in candidates[:20]:
-        result = score_match(source_post, candidate)
+        if source_post.post_type == 'wanted':
+            result = score_match(source_post, candidate)
+        else:
+            result = score_match(candidate, source_post)
         scored.append({
             "post": candidate,
             "score": result["score"],
@@ -428,8 +431,8 @@ def get_skill_suggestions(user_profile):
     learning = ', '.join(user_profile.skills_learning or []) or 'None listed'
     sessions = user_profile.sessions_completed or 0
 
-    client = _get_genai_client()
-    if client:
+    if _is_genai_available():
+        import google.generativeai as genai
         try:
             prompt = f"""You are an academic advisor at Debre Berhan University helping students grow.
 
@@ -453,10 +456,8 @@ Consider:
 Return ONLY valid JSON:
 {{"suggestions": [{{"skill": "...", "reason": "...", "category": "..."}}, {{"skill": "...", "reason": "...", "category": "..."}}, {{"skill": "...", "reason": "...", "category": "..."}}]}}"""
 
-            response = client.models.generate_content(
-                model=_get_model_name(),
-                contents=prompt,
-            )
+            model = genai.GenerativeModel(_get_model_name())
+            response = model.generate_content(prompt)
 
             result = _parse_gemini_json(response.text)
             if result and 'suggestions' in result and len(result['suggestions']) > 0:

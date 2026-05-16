@@ -29,26 +29,7 @@ class SupabaseJWTAuthentication(BaseAuthentication):
             print("[Supabase Auth] Empty token string provided.")
             return None
 
-        # -- DEMO BYPASS FOR TESTING --
-        if token.startswith("DEMO_TOKEN"):
-            parts = token.split(":")
-            email = parts[1] if len(parts) > 1 else "abebegeleta@dbu.edu.et"
-            
-            print(f"[Supabase Auth] DEMO_TOKEN detected! Authenticating demo user: {email}")
-            try:
-                user = User.objects.get(email=email)
-                print(f"[Supabase Auth] Authenticated existing demo user: {user.email}")
-            except User.DoesNotExist:
-                print(f"[Supabase Auth] New demo user, no Django profile yet: {email}")
-                # Return an unsaved user instance so IsAuthenticated passes,
-                # but views can check `if not request.user.pk:` to return 404.
-                import uuid
-                user = User(
-                    supabase_uid=str(uuid.uuid4()),
-                    email=email,
-                    username=email.split('@')[0] if email else "demo_user"
-                )
-            return (user, token)
+
 
         # If no JWT secret is configured, skip (dev mode)
         if not settings.SUPABASE_JWT_SECRET:
@@ -56,19 +37,42 @@ class SupabaseJWTAuthentication(BaseAuthentication):
             return None
 
         try:
+            try:
+                unverified_header = jwt.get_unverified_header(token)
+            except Exception as parse_e:
+                print(f"[Supabase Auth] FATAL PARSE ERROR. Token is not a JWT! Token: '{token[:30]}...' Error: {parse_e}")
+                raise AuthenticationFailed('Invalid token format')
+
+            # Extract the algorithm
+            alg = unverified_header.get('alg', 'HS256')
+            
+            # Fetch public key using PyJWKClient for modern Supabase (RS256 or ES256)
+            if alg in ['RS256', 'ES256']:
+                from jwt import PyJWKClient
+                jwks_url = f"{settings.SUPABASE_URL}/auth/v1/.well-known/jwks.json"
+                jwks_client = PyJWKClient(jwks_url)
+                signing_key = jwks_client.get_signing_key_from_jwt(token)
+                secret_or_key = signing_key.key
+            else:
+                # Fallback for HS256 legacy Supabase
+                import base64
+                try:
+                    secret_or_key = base64.b64decode(settings.SUPABASE_JWT_SECRET)
+                except Exception:
+                    secret_or_key = settings.SUPABASE_JWT_SECRET
+
             payload = jwt.decode(
                 token,
-                settings.SUPABASE_JWT_SECRET,
-                algorithms=['HS256'],
+                secret_or_key,
+                algorithms=[alg],
                 audience='authenticated',
             )
-            print("[Supabase Auth] JWT successfully verified. Extracted payload.")
         except jwt.ExpiredSignatureError:
             print("[Supabase Auth] ERROR: Token has expired.")
             raise AuthenticationFailed('Token has expired')
         except jwt.InvalidTokenError as e:
-            print(f"[Supabase Auth] ERROR: Invalid token: {str(e)}")
-            raise AuthenticationFailed('Invalid token')
+            print(f"[Supabase Auth] ERROR: Invalid token: {str(e)} | Type: {type(e)}")
+            raise AuthenticationFailed(f'Invalid token signature: {str(e)}')
 
         supabase_uid = payload.get('sub')
         email = payload.get('email', '')
@@ -85,12 +89,23 @@ class SupabaseJWTAuthentication(BaseAuthentication):
             print(f"[Supabase Auth] Authenticated existing Django User: {user.email}")
         except User.DoesNotExist:
             print(f"[Supabase Auth] New Supabase user, no Django profile yet: {email}")
-            # Return an unsaved user instance so IsAuthenticated passes,
-            # but views can check `if not request.user.pk:` to return 404.
-            user = User(
-                supabase_uid=supabase_uid,
-                email=email,
-                username=email.split('@')[0] if email else supabase_uid[:30]
-            )
+            if email:
+                try:
+                    user = User.objects.get(email=email)
+                    user.supabase_uid = supabase_uid
+                    user.save(update_fields=['supabase_uid'])
+                    print(f"[Supabase Auth] Linked Supabase UID to existing Django User: {email}")
+                except User.DoesNotExist:
+                    user = User(
+                        supabase_uid=supabase_uid,
+                        email=email,
+                        username=email.split('@')[0] if email else supabase_uid[:30]
+                    )
+            else:
+                user = User(
+                    supabase_uid=supabase_uid,
+                    email=email,
+                    username=supabase_uid[:30]
+                )
 
         return (user, token)

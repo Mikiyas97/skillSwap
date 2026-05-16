@@ -20,9 +20,6 @@ class ProfileView(generics.RetrieveUpdateAPIView, generics.CreateAPIView):
         return self.request.user
 
     def post(self, request, *args, **kwargs):
-        if request.user.pk:
-            return Response({'error': 'Profile already exists'}, status=status.HTTP_409_CONFLICT)
-        
         user = request.user
         
         # Populate from request data
@@ -39,7 +36,7 @@ class ProfileView(generics.RetrieveUpdateAPIView, generics.CreateAPIView):
         user.avatar = request.data.get('profile_picture', request.data.get('avatar', ''))
         
         user.save()
-        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED if not user.pk else status.HTTP_200_OK)
 
 
 class UserDetailView(generics.RetrieveAPIView):
