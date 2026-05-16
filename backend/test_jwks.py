@@ -1,5 +1,6 @@
 import os
 import jwt
+
 from jwt import PyJWKClient
 from dotenv import load_dotenv
 
