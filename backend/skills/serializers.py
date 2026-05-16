@@ -20,7 +20,8 @@ class SkillListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = SkillListing
         fields = [
-            'id', 'tutor', 'title', 'description', 'category', 'category_name',
+            'id', 'tutor', 'title', 'description', 'post_type',
+            'category', 'category_name',
             'tags', 'level', 'availability', 'is_active',
             'rating', 'total_reviews', 'sessions_completed',
             'created_at', 'updated_at',
@@ -32,7 +33,7 @@ class SkillListingCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SkillListing
-        fields = ['title', 'description', 'category', 'tags', 'level', 'availability']
+        fields = ['title', 'description', 'post_type', 'category', 'tags', 'level', 'availability']
 
     def create(self, validated_data):
         validated_data['tutor'] = self.context['request'].user

@@ -25,10 +25,16 @@ class SkillListing(models.Model):
         ('Advanced', 'Advanced'),
     ]
 
+    POST_TYPE_CHOICES = [
+        ('offer', 'Offer'),
+        ('wanted', 'Wanted'),
+    ]
+
     tutor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                related_name='skill_listings')
     title = models.CharField(max_length=200)
     description = models.TextField()
+    post_type = models.CharField(max_length=20, choices=POST_TYPE_CHOICES, default='offer')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True,
                                   related_name='listings')
     tags = models.JSONField(default=list, blank=True)
