@@ -45,9 +45,11 @@ class SessionDetailView(generics.RetrieveAPIView):
 
 @api_view(['POST'])
 def complete_session(request, pk):
-    """Mark a session as completed. Only the tutor can do this."""
+    """Mark a session as completed. Either tutor or student can do this."""
     try:
-        session = Session.objects.get(pk=pk, tutor=request.user)
+        session = Session.objects.get(
+            Q(tutor=request.user) | Q(student=request.user), pk=pk
+        )
     except Session.DoesNotExist:
         return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
 
