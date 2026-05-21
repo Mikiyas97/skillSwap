@@ -61,6 +61,7 @@ function adaptUser(apiUser) {
     id: String(apiUser.id),
     name: apiUser.name || `${apiUser.first_name || ''} ${apiUser.last_name || ''}`.trim(),
     email: apiUser.email,
+    college: apiUser.college || '',
     department: apiUser.department || '',
     year: apiUser.year || '',
     bio: apiUser.bio || '',
@@ -85,6 +86,7 @@ function adaptListing(apiListing) {
     tutor,
     title: apiListing.title,
     description: apiListing.description,
+    post_type: apiListing.post_type || 'offer',
     category: apiListing.category_name || '',
     tags: apiListing.tags || [],
     level: apiListing.level || 'Beginner',
@@ -167,8 +169,20 @@ export async function createSkillListing(payload) {
   });
 }
 
+export async function askAssistant(payload) {
+  return request('/assistant/ask/', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function fetchMyListings() {
   const data = await request('/skills/my-listings/');
+  return (data.results || data).map(adaptListing);
+}
+
+export async function fetchUserListings(userId) {
+  const data = await request(`/skills/listings/?tutor=${userId}`);
   return (data.results || data).map(adaptListing);
 }
 
@@ -213,6 +227,11 @@ export async function submitReview(sessionId, payload) {
 
 export async function fetchTutorReviews(tutorId) {
   const data = await request(`/sessions/reviews/tutor/${tutorId}/`);
+  return (data.results || data).map(adaptReview);
+}
+
+export async function fetchListingReviews(listingId) {
+  const data = await request(`/sessions/reviews/listing/${listingId}/`);
   return (data.results || data).map(adaptReview);
 }
 

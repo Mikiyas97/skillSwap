@@ -74,13 +74,13 @@ export default function SkillDetail() {
 
             {/* Tutor card — visible on mobile (hidden on desktop where sidebar shows) */}
             <div className="glass-card skill-detail-tutor-mobile" style={{ padding: '18px 16px', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <Link to={`/user/${tutor.id}`} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, textDecoration: 'none', color: 'inherit' }}>
                 <Avatar name={tutor.name} size={48} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 className="text-truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1rem' }}>{tutor.name}</h3>
                   <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{tutor.department} · {tutor.year}</p>
                 </div>
-              </div>
+              </Link>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14, textAlign: 'center' }}>
                 {[
                   { value: tutor.sessions_completed, label: 'Sessions' },
@@ -119,11 +119,11 @@ export default function SkillDetail() {
 
           {/* Sidebar — desktop only */}
           <div className="glass-card skill-detail-sidebar" style={{ padding: 24, position: 'sticky', top: 80 }}>
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <Link to={`/user/${tutor.id}`} style={{ textAlign: 'center', marginBottom: 16, display: 'block', textDecoration: 'none', color: 'inherit' }}>
               <Avatar name={tutor.name} size={56} style={{ margin: '0 auto 10px' }} />
               <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.05rem' }}>{tutor.name}</h3>
               <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>{tutor.department} · {tutor.year}</p>
-            </div>
+            </Link>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 16, textAlign: 'center' }}>
               {[
                 { value: tutor.sessions_completed, label: 'Sessions' },

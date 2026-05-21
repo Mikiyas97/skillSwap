@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/cancel/', views.cancel_session, name='session-cancel'),
     path('<int:session_id>/review/', views.ReviewCreateView.as_view(), name='review-create'),
     path('reviews/tutor/<int:tutor_id>/', views.TutorReviewsView.as_view(), name='tutor-reviews'),
+    path('reviews/listing/<int:listing_id>/', views.ListingReviewsView.as_view(), name='listing-reviews'),
 ]

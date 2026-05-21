@@ -17,6 +17,8 @@ import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
 import NotFound from './pages/NotFound';
 import AiMatches from './pages/AiMatches';
+import UserProfile from './pages/UserProfile';
+import FloatingAssistant from './components/FloatingAssistant';
 
 function ProtectedRoute({ children, allowOnboarding = false }) {
   const { user, loading } = useAuth();
@@ -53,6 +55,7 @@ function AppRoutes() {
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/ai-matches" element={<ProtectedRoute><AiMatches /></ProtectedRoute>} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/user/:id" element={<UserProfile />} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
@@ -60,6 +63,7 @@ function AppRoutes() {
       </main>
       {!hideNav && <div className="footer-desktop"><Footer /></div>}
       {!hideNav && <BottomNav />}
+      <FloatingAssistant />
     </div>
   );
 }

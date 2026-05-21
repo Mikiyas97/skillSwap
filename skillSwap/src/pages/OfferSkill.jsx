@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, X, CheckCircle, AlertCircle, BookOpen, Search } from 'lucide-react';
 import { validateSkillForm } from '../utils/validators';
@@ -18,6 +18,39 @@ export default function OfferSkill() {
   const [loading, setLoading] = useState(false);
   const [postType, setPostType] = useState(initialType);
   const [form, setForm] = useState({ title: '', description: '', tags: [], level: '', availability: '', category: '' });
+
+  // Availability UI state
+  const [availDay, setAvailDay] = useState('Weekdays');
+  const [availStartTime, setAvailStartTime] = useState('14:00');
+  const [availEndTime, setAvailEndTime] = useState('17:00');
+
+  const formatTime = (time24) => {
+    if (!time24) return '';
+    const [h, m] = time24.split(':');
+    let hours = parseInt(h, 10);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    return `${hours}:${m} ${ampm}`;
+  };
+
+  useEffect(() => {
+    // Initialize availability string
+    if (availDay && availStartTime && availEndTime) {
+      setForm(prev => ({ ...prev, availability: `${availDay}, ${formatTime(availStartTime)} - ${formatTime(availEndTime)}` }));
+    }
+  }, []); // Run once on mount
+
+  const handleAvailabilityChange = (day, start, end) => {
+    setAvailDay(day);
+    setAvailStartTime(start);
+    setAvailEndTime(end);
+    if (day && start && end) {
+      update('availability', `${day}, ${formatTime(start)} - ${formatTime(end)}`);
+    } else {
+      update('availability', '');
+    }
+  };
 
   const { data: categories } = useAPI(
     () => fetchCategories(),
@@ -182,7 +215,41 @@ export default function OfferSkill() {
 
           <div style={{ marginBottom: 28 }}>
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Availability *</label>
-            <input className="input-field" placeholder="e.g. Weekends 2-5pm" value={form.availability} onChange={e => update('availability', e.target.value)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: 10, alignItems: 'center' }}>
+              <select 
+                className="input-field" 
+                value={availDay} 
+                onChange={e => handleAvailabilityChange(e.target.value, availStartTime, availEndTime)}
+              >
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+                <option value="Weekdays">Weekdays (Mon-Fri)</option>
+                <option value="Weekends">Weekends (Sat-Sun)</option>
+                <option value="Every day">Every day</option>
+              </select>
+              
+              <input 
+                type="time" 
+                className="input-field" 
+                value={availStartTime} 
+                onChange={e => handleAvailabilityChange(availDay, e.target.value, availEndTime)}
+              />
+              
+              <input 
+                type="time" 
+                className="input-field" 
+                value={availEndTime} 
+                onChange={e => handleAvailabilityChange(availDay, availStartTime, e.target.value)}
+              />
+            </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 6 }}>
+              Preview: <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>{form.availability || 'Select day and time'}</span>
+            </p>
             {errors.availability && <p style={{ fontSize: '0.78rem', color: '#EF4444', marginTop: 4 }}>{errors.availability}</p>}
           </div>
 

@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { fetchConversations } from '../../services/api';
 import {
   BookOpen,
   Search,
@@ -28,7 +29,33 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [totalUnread, setTotalUnread] = useState(0);
   const dropdownRef = useRef(null);
+
+  // Poll for unread messages
+  useEffect(() => {
+    if (!user) return;
+    let isMounted = true;
+    
+    const loadUnread = async () => {
+      try {
+        const convs = await fetchConversations();
+        if (isMounted) {
+          const unread = convs.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+          setTotalUnread(unread);
+        }
+      } catch (e) {
+        // Silently ignore polling errors
+      }
+    };
+    
+    loadUnread();
+    const interval = setInterval(loadUnread, 5000); // Poll every 5s for responsiveness
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -99,7 +126,20 @@ export default function Navbar() {
                     onMouseEnter={e => { if (!active) { e.currentTarget.style.color = 'var(--color-text-primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; } }}
                     onMouseLeave={e => { if (!active) { e.currentTarget.style.color = 'var(--color-text-secondary)'; e.currentTarget.style.background = 'transparent'; } }}
                   >
-                    <Icon size={16} />
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <Icon size={16} />
+                      {link.label === 'Chat' && totalUnread > 0 && (
+                        <div style={{
+                          position: 'absolute', top: -6, right: -8,
+                          background: '#EF4444', color: '#fff', fontSize: '0.6rem',
+                          fontWeight: 800, width: 16, height: 16, borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          border: '2px solid var(--color-dark-900)'
+                        }}>
+                          {totalUnread > 9 ? '9+' : totalUnread}
+                        </div>
+                      )}
+                    </div>
                     {link.label}
                   </Link>
                 );

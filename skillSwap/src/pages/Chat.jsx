@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { Send, ArrowLeft, Search } from 'lucide-react';
 import Avatar from '../components/ui/Avatar';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +31,7 @@ export default function Chat() {
             department: p.department || '',
             online: p.online || false,
             avatar: p.avatar || '',
+            unreadCount: c.unread_count || 0,
           }))
         );
 
@@ -42,6 +43,7 @@ export default function Chat() {
             department: targetUser.department || '',
             online: targetUser.online || false,
             avatar: targetUser.avatar || '',
+            unreadCount: 0,
           };
 
           // Remove if they already exist so we can push them to the top
@@ -76,6 +78,12 @@ export default function Chat() {
             if (prev.length !== msgs.length) return msgs;
             return prev;
           });
+
+          // Clear local unread count for this contact immediately
+          setContacts(prev => prev.map(c => 
+            c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c
+          ));
+
           await markMessagesRead(selectedContact.id);
         }
       } catch (err) {
@@ -140,6 +148,15 @@ export default function Chat() {
                 <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{contact.name}</p>
                 <p className="text-truncate" style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{contact.department}</p>
               </div>
+              {contact.unreadCount > 0 && (
+                <div style={{
+                  background: '#EF4444', color: '#fff', fontSize: '0.65rem',
+                  fontWeight: 800, width: 20, height: 20, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                }}>
+                  {contact.unreadCount > 9 ? '9+' : contact.unreadCount}
+                </div>
+              )}
             </button>
           ))}
         </div>
@@ -151,11 +168,13 @@ export default function Chat() {
           <>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--color-dark-800)', flexShrink: 0 }}>
               <button onClick={() => setSelectedContact(null)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: 6, minWidth: 36, minHeight: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowLeft size={20} /></button>
-              <Avatar name={selectedContact.name} size={36} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p className="text-truncate" style={{ fontWeight: 600, fontSize: '0.9rem' }}>{selectedContact.name}</p>
-                <p style={{ fontSize: '0.72rem', color: selectedContact.online ? '#44CF6C' : 'var(--color-text-muted)' }}>{selectedContact.online ? 'Online' : 'Offline'}</p>
-              </div>
+              <Link to={`/user/${selectedContact.id}`} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit', flex: 1, minWidth: 0 }}>
+                <Avatar name={selectedContact.name} size={36} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p className="text-truncate" style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{selectedContact.name}</p>
+                  <p style={{ fontSize: '0.72rem', color: selectedContact.online ? '#44CF6C' : 'var(--color-text-muted)' }}>{selectedContact.online ? 'Online' : 'Offline'}</p>
+                </div>
+              </Link>
             </div>
 
             <div className="scroll-smooth" style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
