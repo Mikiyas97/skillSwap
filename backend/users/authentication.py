@@ -66,6 +66,7 @@ class SupabaseJWTAuthentication(BaseAuthentication):
                 secret_or_key,
                 algorithms=[alg],
                 audience='authenticated',
+                leeway=120,
             )
         except jwt.ExpiredSignatureError:
             print("[Supabase Auth] ERROR: Token has expired.")

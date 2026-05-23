@@ -52,6 +52,7 @@ class SupabaseAuthMiddleware:
                 settings.SUPABASE_JWT_SECRET,
                 algorithms=['HS256'],
                 audience='authenticated',
+                leeway=120,
             )
             request.supabase_user_id = payload.get('sub')
             request.supabase_email = payload.get('email')
